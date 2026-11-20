@@ -16,7 +16,13 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as WhopSetupRouteImport } from './routes/whop-setup'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as ProjectsNewRouteImport } from './routes/projects.new'
+import { Route as ShareTokenRouteImport } from './routes/share.$token'
+import { Route as ProjectsProjectIdReportRouteImport } from './routes/projects.$projectId.report'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,10 +59,40 @@ const PricingRoute = PricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WhopSetupRoute = WhopSetupRouteImport.update({
   id: '/whop-setup',
   path: '/whop-setup',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsNewRoute = ProjectsNewRouteImport.update({
+  id: '/projects/new',
+  path: '/projects/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareTokenRoute = ShareTokenRouteImport.update({
+  id: '/share/$token',
+  path: '/share/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsProjectIdReportRoute = ProjectsProjectIdReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => ProjectsProjectIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -67,7 +103,13 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/whop-setup': typeof WhopSetupRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/projects/new': typeof ProjectsNewRoute
+  '/share/$token': typeof ShareTokenRoute
+  '/projects/$projectId/report': typeof ProjectsProjectIdReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,7 +119,13 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/whop-setup': typeof WhopSetupRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/projects/new': typeof ProjectsNewRoute
+  '/share/$token': typeof ShareTokenRoute
+  '/projects/$projectId/report': typeof ProjectsProjectIdReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,7 +136,13 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/whop-setup': typeof WhopSetupRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/projects/new': typeof ProjectsNewRoute
+  '/share/$token': typeof ShareTokenRoute
+  '/projects/$projectId/report': typeof ProjectsProjectIdReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -100,7 +154,13 @@ export interface FileRouteTypes {
     | '/faq'
     | '/how-it-works'
     | '/pricing'
+    | '/reset-password'
+    | '/settings'
     | '/whop-setup'
+    | '/projects/$projectId'
+    | '/projects/new'
+    | '/share/$token'
+    | '/projects/$projectId/report'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -110,7 +170,13 @@ export interface FileRouteTypes {
     | '/faq'
     | '/how-it-works'
     | '/pricing'
+    | '/reset-password'
+    | '/settings'
     | '/whop-setup'
+    | '/projects/$projectId'
+    | '/projects/new'
+    | '/share/$token'
+    | '/projects/$projectId/report'
   id:
     | '__root__'
     | '/'
@@ -120,7 +186,13 @@ export interface FileRouteTypes {
     | '/faq'
     | '/how-it-works'
     | '/pricing'
+    | '/reset-password'
+    | '/settings'
     | '/whop-setup'
+    | '/projects/$projectId'
+    | '/projects/new'
+    | '/share/$token'
+    | '/projects/$projectId/report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -131,7 +203,12 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   HowItWorksRoute: typeof HowItWorksRoute
   PricingRoute: typeof PricingRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SettingsRoute: typeof SettingsRoute
   WhopSetupRoute: typeof WhopSetupRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren
+  ProjectsNewRoute: typeof ProjectsNewRoute
+  ShareTokenRoute: typeof ShareTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -185,6 +262,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/whop-setup': {
       id: '/whop-setup'
       path: '/whop-setup'
@@ -192,8 +283,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WhopSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/new': {
+      id: '/projects/new'
+      path: '/projects/new'
+      fullPath: '/projects/new'
+      preLoaderRoute: typeof ProjectsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/$token': {
+      id: '/share/$token'
+      path: '/share/$token'
+      fullPath: '/share/$token'
+      preLoaderRoute: typeof ShareTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectId/report': {
+      id: '/projects/$projectId/report'
+      path: '/report'
+      fullPath: '/projects/$projectId/report'
+      preLoaderRoute: typeof ProjectsProjectIdReportRouteImport
+      parentRoute: typeof ProjectsProjectIdRoute
+    }
   }
 }
+
+interface ProjectsProjectIdRouteChildren {
+  ProjectsProjectIdReportRoute: typeof ProjectsProjectIdReportRoute
+}
+
+const ProjectsProjectIdRouteChildren: ProjectsProjectIdRouteChildren = {
+  ProjectsProjectIdReportRoute: ProjectsProjectIdReportRoute,
+}
+
+const ProjectsProjectIdRouteWithChildren =
+  ProjectsProjectIdRoute._addFileChildren(ProjectsProjectIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -203,7 +333,12 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   HowItWorksRoute: HowItWorksRoute,
   PricingRoute: PricingRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SettingsRoute: SettingsRoute,
   WhopSetupRoute: WhopSetupRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRouteWithChildren,
+  ProjectsNewRoute: ProjectsNewRoute,
+  ShareTokenRoute: ShareTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

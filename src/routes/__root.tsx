@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { LoadingScreen } from "@/components/brand/LoadingScreen";
+import { useUser } from "@/lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -127,6 +129,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const { ready } = useUser();
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
@@ -140,6 +143,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      {!ready && <LoadingScreen />}
       <Toaster theme="dark" richColors position="top-right" />
     </QueryClientProvider>
   );

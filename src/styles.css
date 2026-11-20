@@ -125,9 +125,18 @@
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
 }
 
+@keyframes loading {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(200%); }
+}
+
 @media print {
   html { color-scheme: light; }
   body { background: var(--paper) !important; color: var(--ink) !important; }
   .print-hidden { display: none !important; }
+  .print-report { border-radius: 0 !important; box-shadow: none !important; max-width: none !important; padding: 0 !important; }
+  .print-report svg { color: var(--ink) !important; }
+  .print-report a { color: inherit !important; text-decoration: none !important; }
   @page { margin: 16mm; }
 }
