@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { demoId, isDemoMode, loadDemoState, saveDemoState } from "@/lib/demo";
+import type { InsightStatus, IntelligenceState } from "@/lib/intelligence";
 
 type T<N extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][N]["Row"];
 export type Project = T<"projects">;
@@ -105,7 +106,7 @@ export const projectQuery = (id: string) =>
       ]);
       const project = check(p);
       if (!project) return null;
-      return { project, scope: check(s), deliverables: check(d), revisions: check(r), changes: check(c), activity: check(a) };
+      return { project, scope: check(s) ?? [], deliverables: check(d) ?? [], revisions: check(r) ?? [], changes: check(c) ?? [], activity: check(a) ?? [] };
     },
   });
 export type ProjectBundle = { project: Project; scope: ScopeItem[]; deliverables: Deliverable[]; revisions: Revision[]; changes: ChangeRequest[]; activity: Activity[] };
@@ -124,13 +125,13 @@ export async function logActivity(project_id: string, message: string) {
 export type NewProjectInput = {
   name: string;
   client_name: string;
-  client_email?: string;
+  client_email?: string | undefined;
   project_type: string;
-  budget?: number;
+  budget?: number | undefined;
   currency: string;
-  due_date?: string;
-  summary?: string;
-  private_notes?: string;
+  due_date?: string | undefined;
+  summary?: string | undefined;
+  private_notes?: string | undefined;
   included_revisions: number;
   scope: { title: string; in_scope: boolean }[];
   deliverables: { title: string; description?: string }[];
@@ -154,6 +155,7 @@ export async function createProject(input: NewProjectInput) {
     budget: input.budget ?? null, currency: input.currency, due_date: input.due_date || null, summary: input.summary || null,
     private_notes: input.private_notes || null, included_revisions: input.included_revisions, status: "draft",
   }).select("id").single());
+  if (!project) throw new Error("The project could not be created. Please try again.");
   if (input.scope.length) check(await supabase.from("scope_items").insert(input.scope.map((s, position) => ({ ...s, project_id: project.id, user_id, position }))));
   if (input.deliverables.length) check(await supabase.from("deliverables").insert(input.deliverables.map((d, position) => ({ ...d, project_id: project.id, user_id, position }))));
   await logActivity(project.id, `Created project “${input.name}”`);
@@ -176,7 +178,7 @@ export async function deleteProject(id: string) {
   if (isDemoMode()) {
     const state = loadDemoState();
     state.projects = state.projects.filter((p) => p.id !== id);
-    for (const key of ["scope", "deliverables", "revisions", "changes", "activities"] as const) {
+    for (const key of ["scope", "deliverables", "revisions", "changes", "activities", "intelligence"] as const) {
       state[key] = state[key].filter((row) => row.project_id !== id) as never;
     }
     saveDemoState(state);
@@ -262,7 +264,7 @@ export async function addRevision(projectId: string, deliverableId: string | nul
   await logActivity(projectId, "Logged a revision request");
 }
 
-export async function addChangeRequest(projectId: string, input: { description: string; classification: string; extra_fee?: number; extra_days?: number }) {
+export async function addChangeRequest(projectId: string, input: { description: string; classification: string; extra_fee?: number | undefined; extra_days?: number | undefined }) {
   const user_id = await currentUserId();
   if (isDemoMode()) {
     const state = loadDemoState();
@@ -312,7 +314,9 @@ export async function seedSampleProject() {
     fresh.changes.push(...sample.changes);
     fresh.activities.push(...sample.activities);
     saveDemoState(fresh);
-    return sample.projects[0].id;
+    const sampleProject = sample.projects[0];
+    if (!sampleProject) throw new Error("The sample project could not be created.");
+    return sampleProject.id;
   }
   const { data, error } = await supabase.rpc("seed_sample_project");
   if (error) throw new Error(error.message);
@@ -372,4 +376,44 @@ export async function clientRespond(token: string, deliverableId: string, action
   }
   const { error } = await supabase.rpc("client_respond", { _token: token, _deliverable_id: deliverableId, _action: action, _name: name, _comment: comment });
   if (error) throw new Error(error.message);
+}
+
+export const intelligenceStatesQuery = (projectId: string) =>
+  queryOptions({
+    queryKey: ["intelligence-states", projectId, isDemoMode()],
+    queryFn: async (): Promise<IntelligenceState[]> => {
+      if (isDemoMode()) {
+        return (loadDemoState().intelligence ?? []).filter((state) => state.project_id === projectId) as IntelligenceState[];
+      }
+      const rows = check(await supabase.from("project_intelligence_states").select("*").eq("project_id", projectId));
+      return (rows ?? []) as IntelligenceState[];
+    },
+  });
+
+export async function setIntelligenceStatus(projectId: string, insightKey: string, status: InsightStatus) {
+  const user_id = await currentUserId();
+  if (isDemoMode()) {
+    const state = loadDemoState();
+    const states = state.intelligence ?? [];
+    const existing = states.find((item) => item.project_id === projectId && item.insight_key === insightKey);
+    if (status === "active") {
+      state.intelligence = states.filter((item) => !(item.project_id === projectId && item.insight_key === insightKey));
+    } else if (existing) {
+      Object.assign(existing, { status, updated_at: new Date().toISOString() });
+    } else {
+      const now = new Date().toISOString();
+      states.push({ id: demoId(), project_id: projectId, user_id, insight_key: insightKey, status, created_at: now, updated_at: now });
+      state.intelligence = states;
+    }
+    saveDemoState(state);
+    return;
+  }
+  if (status === "active") {
+    check(await supabase.from("project_intelligence_states").delete().eq("project_id", projectId).eq("insight_key", insightKey));
+    return;
+  }
+  check(await supabase.from("project_intelligence_states").upsert(
+    { project_id: projectId, user_id, insight_key: insightKey, status, updated_at: new Date().toISOString() },
+    { onConflict: "project_id,insight_key" },
+  ));
 }

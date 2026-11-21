@@ -37,7 +37,7 @@ function NewProject() {
       const id = await createProject({
         name: String(form.get("name")).trim(), client_name: String(form.get("client_name")).trim(), client_email: String(form.get("client_email")).trim(),
         project_type: String(form.get("project_type")), budget: form.get("budget") ? Number(form.get("budget")) : undefined, currency: String(form.get("currency")),
-        due_date: String(form.get("due_date")), summary: String(form.get("summary")).trim(), private_notes: String(form.get("private_notes")).trim(),
+        due_date: String(form.get("due_date")) || undefined, summary: String(form.get("summary")).trim() || undefined, private_notes: String(form.get("private_notes")).trim() || undefined,
         included_revisions: Number(form.get("included_revisions")), scope: cleanScope, deliverables: cleanDeliverables,
       });
       toast.success("Project created", { description: "Your scope and deliverables are ready." });

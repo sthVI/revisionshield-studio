@@ -13,6 +13,7 @@ export type DemoState = {
   revisions: Row<"revisions">[];
   changes: Row<"change_requests">[];
   activities: Row<"activities">[];
+  intelligence: Row<"project_intelligence_states">[];
 };
 
 const uid = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -63,6 +64,7 @@ export function createDemoState(): DemoState {
     ],
     revisions: [{ id: uid(), project_id: projectId, user_id: userId, deliverable_id: d1, note: "Make the catering call-to-action more prominent on mobile.", requested_by: "Maya (sample client)", source: "client_portal", created_at: iso(-4) }],
     changes: [{ id: uid(), project_id: projectId, user_id: userId, description: "Add a downloadable seasonal catering menu.", classification: "out_of_scope", extra_fee: 120, extra_days: 1, status: "accepted", decided_at: iso(-2), created_at: iso(-3), updated_at: iso(-2) }],
+    intelligence: [],
     activities: [
       { id: uid(), project_id: projectId, user_id: userId, actor: "client", message: "Maya approved Homepage design", created_at: iso(-3) },
       { id: uid(), project_id: projectId, user_id: userId, actor: "you", message: "Submitted Inner page designs for review", created_at: iso(-1) },
@@ -83,7 +85,10 @@ export function setDemoMode(enabled: boolean) {
 export function loadDemoState(): DemoState {
   try {
     const raw = window.localStorage.getItem(DEMO_KEY);
-    if (raw) return JSON.parse(raw) as DemoState;
+    if (raw) {
+      const parsed = JSON.parse(raw) as DemoState;
+      return { ...parsed, intelligence: parsed.intelligence ?? [] };
+    }
   } catch {
     // A corrupt demo should recover rather than block the product tour.
   }

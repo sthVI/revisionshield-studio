@@ -23,6 +23,8 @@ import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projec
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as ShareTokenRouteImport } from './routes/share.$token'
 import { Route as ProjectsProjectIdReportRouteImport } from './routes/projects.$projectId.report'
+import { Route as ProjectsProjectIdIntelligenceRouteImport } from './routes/projects.$projectId_.intelligence'
+import { Route as ProjectsProjectIdIntelligenceReportRouteImport } from './routes/projects.$projectId_.intelligence-report'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +96,18 @@ const ProjectsProjectIdReportRoute = ProjectsProjectIdReportRouteImport.update({
   path: '/report',
   getParentRoute: () => ProjectsProjectIdRoute,
 } as any)
+const ProjectsProjectIdIntelligenceRoute =
+  ProjectsProjectIdIntelligenceRouteImport.update({
+    id: '/projects/$projectId_/intelligence',
+    path: '/projects/$projectId/intelligence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProjectsProjectIdIntelligenceReportRoute =
+  ProjectsProjectIdIntelligenceReportRouteImport.update({
+    id: '/projects/$projectId_/intelligence-report',
+    path: '/projects/$projectId/intelligence-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +124,8 @@ export interface FileRoutesByFullPath {
   '/projects/new': typeof ProjectsNewRoute
   '/share/$token': typeof ShareTokenRoute
   '/projects/$projectId/report': typeof ProjectsProjectIdReportRoute
+  '/projects/$projectId/intelligence': typeof ProjectsProjectIdIntelligenceRoute
+  '/projects/$projectId/intelligence-report': typeof ProjectsProjectIdIntelligenceReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +142,8 @@ export interface FileRoutesByTo {
   '/projects/new': typeof ProjectsNewRoute
   '/share/$token': typeof ShareTokenRoute
   '/projects/$projectId/report': typeof ProjectsProjectIdReportRoute
+  '/projects/$projectId/intelligence': typeof ProjectsProjectIdIntelligenceRoute
+  '/projects/$projectId/intelligence-report': typeof ProjectsProjectIdIntelligenceReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +161,8 @@ export interface FileRoutesById {
   '/projects/new': typeof ProjectsNewRoute
   '/share/$token': typeof ShareTokenRoute
   '/projects/$projectId/report': typeof ProjectsProjectIdReportRoute
+  '/projects/$projectId_/intelligence': typeof ProjectsProjectIdIntelligenceRoute
+  '/projects/$projectId_/intelligence-report': typeof ProjectsProjectIdIntelligenceReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +181,8 @@ export interface FileRouteTypes {
     | '/projects/new'
     | '/share/$token'
     | '/projects/$projectId/report'
+    | '/projects/$projectId/intelligence'
+    | '/projects/$projectId/intelligence-report'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +199,8 @@ export interface FileRouteTypes {
     | '/projects/new'
     | '/share/$token'
     | '/projects/$projectId/report'
+    | '/projects/$projectId/intelligence'
+    | '/projects/$projectId/intelligence-report'
   id:
     | '__root__'
     | '/'
@@ -193,6 +217,8 @@ export interface FileRouteTypes {
     | '/projects/new'
     | '/share/$token'
     | '/projects/$projectId/report'
+    | '/projects/$projectId_/intelligence'
+    | '/projects/$projectId_/intelligence-report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -209,6 +235,8 @@ export interface RootRouteChildren {
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren
   ProjectsNewRoute: typeof ProjectsNewRoute
   ShareTokenRoute: typeof ShareTokenRoute
+  ProjectsProjectIdIntelligenceRoute: typeof ProjectsProjectIdIntelligenceRoute
+  ProjectsProjectIdIntelligenceReportRoute: typeof ProjectsProjectIdIntelligenceReportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -311,6 +339,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdReportRouteImport
       parentRoute: typeof ProjectsProjectIdRoute
     }
+    '/projects/$projectId_/intelligence': {
+      id: '/projects/$projectId_/intelligence'
+      path: '/projects/$projectId/intelligence'
+      fullPath: '/projects/$projectId/intelligence'
+      preLoaderRoute: typeof ProjectsProjectIdIntelligenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectId_/intelligence-report': {
+      id: '/projects/$projectId_/intelligence-report'
+      path: '/projects/$projectId/intelligence-report'
+      fullPath: '/projects/$projectId/intelligence-report'
+      preLoaderRoute: typeof ProjectsProjectIdIntelligenceReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -339,6 +381,9 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectsProjectIdRoute: ProjectsProjectIdRouteWithChildren,
   ProjectsNewRoute: ProjectsNewRoute,
   ShareTokenRoute: ShareTokenRoute,
+  ProjectsProjectIdIntelligenceRoute: ProjectsProjectIdIntelligenceRoute,
+  ProjectsProjectIdIntelligenceReportRoute:
+    ProjectsProjectIdIntelligenceReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
