@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, BriefcaseBusiness, Check, Clipboard, FileText, ShieldCheck, Sparkles, Target, TrendingUp, UserRound, Users } from "lucide-react";
+import type { FormEvent, ReactNode } from "react";
+import { ArrowUpRight, BriefcaseBusiness, Check, Clipboard, ShieldCheck, Target, TrendingUp, UserRound } from "lucide-react";
 import { AppShell, WorkspaceGate } from "@/components/app/AppShell";
 import { Panel } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ function FreelancerPage() {
   }, []);
 
   useEffect(() => {
-    if (ready) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace));
+    if (ready) { try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace)); } catch { toast.error("Browser storage is unavailable; changes may not persist."); } }
   }, [workspace, ready]);
 
   const selected = workspace.opportunities.find((item) => item.id === selectedId) ?? workspace.opportunities[0];
@@ -102,7 +103,7 @@ function FreelancerPage() {
     best: workspace.opportunities.reduce((best, item) => Math.max(best, scoreOf(item.scores)), 0),
   }), [workspace.opportunities]);
 
-  function addOpportunity(event: React.FormEvent<HTMLFormElement>) {
+  function addOpportunity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!draft.title.trim() || !draft.platform.trim()) { toast.error("Add an opportunity title and platform first."); return; }
     const item: Opportunity = {
@@ -140,7 +141,7 @@ function FreelancerPage() {
         <div><p className="font-medium">Browser-local workspace</p><p className="mt-1 text-muted-foreground">These opportunity records and profile notes are saved only in this browser. They are not synced to your RevisionShield account or cloud database yet. Do not store passwords, payment details or sensitive client information here.</p></div>
       </div>
 
-      {profileOpen && <Panel title="Freelancer identity" description="Keep your service, skills and availability clear. This profile is a working reference, not a verified platform identity.">
+      {profileOpen && <Panel title="Freelancer identity"><p className="mb-4 text-sm text-muted-foreground">Keep your service, skills and availability clear. This profile is a working reference, not a verified platform identity.</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Display name"><Input value={workspace.profile.name} onChange={(e) => setWorkspace((w) => ({ ...w, profile: { ...w.profile, name: e.target.value } }))} placeholder="Your professional name" /></Field>
           <Field label="Primary service"><Input value={workspace.profile.service} onChange={(e) => setWorkspace((w) => ({ ...w, profile: { ...w.profile, service: e.target.value } }))} placeholder="e.g. Website design and development" /></Field>
@@ -158,7 +159,7 @@ function FreelancerPage() {
       </div>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,.95fr)]">
-        <Panel title="Opportunity discovery" description="Add opportunities manually from platforms you are authorised to use.">
+        <Panel title="Opportunity discovery"><p className="mb-4 text-sm text-muted-foreground">Add opportunities manually from platforms you are authorised to use.</p>
           <form onSubmit={addOpportunity} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Opportunity title"><Input required value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} placeholder="Website redesign" /></Field>
@@ -173,20 +174,20 @@ function FreelancerPage() {
           </form>
         </Panel>
 
-        <Panel title="Opportunity pipeline" description="Move each opportunity forward as you review it.">
+        <Panel title="Opportunity pipeline"><p className="mb-4 text-sm text-muted-foreground">Move each opportunity forward as you review it.</p>
           {workspace.opportunities.length === 0 ? <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Your pipeline is empty. Add an opportunity to start tracking it.</div> : <div className="space-y-3">{workspace.opportunities.map((item) => {
             const score = scoreOf(item.scores); const band = bandOf(score);
-            return <button type="button" key={item.id} onClick={() => setSelectedId(item.id)} className={`w-full rounded-xl border p-4 text-left transition-colors ${selected?.id === item.id ? "border-violet/60 bg-accent/40" : "border-border bg-card/50 hover:border-violet/40"}`}>
-              <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-medium">{item.title}</p><p className="mt-1 text-xs text-muted-foreground">{item.platform}{item.buyer ? ` · ${item.buyer}` : ""}</p></div><span className={`shrink-0 text-sm font-semibold ${band.className}`}>{score}/100</span></div>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-muted-foreground">{band.label}</span><select aria-label={`Stage for ${item.title}`} value={item.stage} onChange={(e) => { e.stopPropagation(); setWorkspace((w) => ({ ...w, opportunities: w.opportunities.map((opp) => opp.id === item.id ? { ...opp, stage: e.target.value as Stage } : opp) })); }} onClick={(e) => e.stopPropagation()} className="rounded-md border border-border bg-background px-2 py-1 text-xs">{STAGES.map((stage) => <option key={stage.value} value={stage.value}>{stage.label}</option>)}</select></div>
-            </button>;
+            return <div key={item.id} className={`rounded-xl border p-4 transition-colors ${selected?.id === item.id ? "border-violet/60 bg-accent/40" : "border-border bg-card/50"}`}>
+              <button type="button" onClick={() => setSelectedId(item.id)} className="flex w-full items-start justify-between gap-3 text-left"><div className="min-w-0"><p className="truncate font-medium">{item.title}</p><p className="mt-1 text-xs text-muted-foreground">{item.platform}{item.buyer ? ` · ${item.buyer}` : ""}</p></div><span className={`shrink-0 text-sm font-semibold ${band.className}`}>{score}/100</span></button>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-muted-foreground">{band.label}</span><select aria-label={`Stage for ${item.title}`} value={item.stage} onChange={(e) => setWorkspace((w) => ({ ...w, opportunities: w.opportunities.map((opp) => opp.id === item.id ? { ...opp, stage: e.target.value as Stage } : opp) }))} className="rounded-md border border-border bg-background px-2 py-1 text-xs">{STAGES.map((stage) => <option key={stage.value} value={stage.value}>{stage.label}</option>)}</select></div>
+            </div>;
           })}</div>}
         </Panel>
       </section>
 
       {selected && <section className="space-y-6">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan">Selected opportunity</p><h2 className="mt-1 text-2xl font-semibold">{selected.title}</h2><p className="mt-1 text-sm text-muted-foreground">{selected.platform}{selected.buyer ? ` · ${selected.buyer}` : ""}{selected.budget ? ` · ${selected.budget}` : ""}</p></div>{selected.url && <a href={selected.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-cyan hover:underline">Open source <ArrowUpRight className="size-4" /></a>}</div>
-        <Panel title="Opportunity qualification" description="Score each factor using evidence you can explain. The result is a guide, not a guarantee of a good outcome.">
+        <Panel title="Opportunity qualification"><p className="mb-4 text-sm text-muted-foreground">Score each factor using evidence you can explain. The result is a guide, not a guarantee of a good outcome.</p>
           <div className="grid gap-5 md:grid-cols-2">
             {CRITERIA.map((criterion) => <div key={criterion.key} className="space-y-2"><div className="flex items-center justify-between gap-3"><Label>{criterion.label}</Label><span className="font-mono text-sm tabular-nums">{selected.scores[criterion.key]}/{criterion.max}</span></div><input type="range" min="0" max={criterion.max} step="1" value={selected.scores[criterion.key]} onChange={(e) => updateSelected({ scores: { ...selected.scores, [criterion.key]: Number(e.target.value) } })} className="w-full accent-cyan" /><p className="text-xs text-muted-foreground">{criterion.hint}</p></div>)}
           </div>
@@ -194,10 +195,10 @@ function FreelancerPage() {
         </Panel>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Panel title="Buyer intelligence" description="Keep verifiable evidence separate from your interpretation.">
+          <Panel title="Buyer intelligence"><p className="mb-4 text-sm text-muted-foreground">Keep verifiable evidence separate from your interpretation.</p>
             <div className="space-y-4"><Field label="Evidence"><Textarea rows={3} value={selected.evidence} onChange={(e) => updateSelected({ evidence: e.target.value })} placeholder="Public work history, verified reviews, clear requirements…" /></Field><Field label="Assumptions"><Textarea rows={3} value={selected.assumptions} onChange={(e) => updateSelected({ assumptions: e.target.value })} placeholder="What you suspect but have not confirmed…" /></Field><Field label="Risks / questions"><Textarea rows={3} value={selected.risks} onChange={(e) => updateSelected({ risks: e.target.value })} placeholder="Unclear scope, unusual payment terms, missing details…" /></Field></div>
           </Panel>
-          <Panel title="Proposal intelligence" description="Create a clear first draft from the opportunity details and your profile. Review it before sending.">
+          <Panel title="Proposal intelligence"><p className="mb-4 text-sm text-muted-foreground">Create a clear first draft from the opportunity details and your profile. Review it before sending.</p>
             <div className="rounded-lg border border-border bg-background/70 p-4"><p className="whitespace-pre-wrap text-sm leading-6">{makeProposal(selected, workspace.profile)}</p></div>
             <Button className="mt-4" variant="outline" onClick={copyProposal}><Clipboard />Copy proposal draft</Button>
           </Panel>
@@ -205,11 +206,11 @@ function FreelancerPage() {
       </section>}
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <Panel title="Freelancer growth loop" description="Turn completed opportunities into lessons you can apply next time.">
+        <Panel title="Freelancer growth loop"><p className="mb-4 text-sm text-muted-foreground">Turn completed opportunities into lessons you can apply next time.</p>
           <div className="flex items-center gap-3 rounded-lg bg-accent/40 p-4"><TrendingUp className="size-5 text-cyan" /><div><p className="font-medium">{totals.won} opportunities marked won</p><p className="text-xs text-muted-foreground">Track your own results; no performance claims are inferred.</p></div></div>
           <div className="mt-4"><Field label="Lessons, wins and improvements"><Textarea rows={4} value={workspace.lessons} onChange={(e) => setWorkspace((w) => ({ ...w, lessons: e.target.value }))} placeholder="What worked? Which project types fit your skills? What would you change next time?" /></Field></div>
         </Panel>
-        <Panel title="Platform authorization & safety" description="Keep discovery and outreach within each platform’s rules.">
+        <Panel title="Platform authorization & safety"><p className="mb-4 text-sm text-muted-foreground">Keep discovery and outreach within each platform’s rules.</p>
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-success" />Use manual or platform-authorised opportunity discovery.</li>
             <li className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-success" />Verify buyer claims and keep evidence separate from assumptions.</li>
@@ -224,9 +225,9 @@ function FreelancerPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return <div className="space-y-2"><Label>{label}</Label>{children}</div>;
 }
-function Metric({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
+function Metric({ label, value, icon }: { label: string; value: string | number; icon: ReactNode }) {
   return <div className="rounded-xl border border-border bg-card p-4"><div className="flex items-center justify-between text-sm text-muted-foreground"><span>{label}</span><span className="text-cyan">{icon}</span></div><p className="mt-2 font-display text-3xl font-semibold tabular-nums">{value}</p></div>;
 }
