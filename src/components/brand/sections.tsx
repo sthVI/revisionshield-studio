@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { Check, Minus, ClipboardList, FileCheck2, GitPullRequestArrow, Link2, FileText, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -110,32 +111,69 @@ export function ComparisonTable() {
   );
 }
 
-export const PLANS = [
-  { name: "Starter", price: "$—", note: "Price set at launch", features: ["Up to 3 active projects", "Client approval links", "Revision & change-request log", "Print / PDF reports"], cta: "Start with Starter" },
-  { name: "Pro", price: "$—", note: "Price set at launch", features: ["Unlimited projects", "Everything in Starter", "Business branding on reports", "Priority email support"], cta: "Go Pro", featured: true },
+const STARTER_FEATURES = [
+  "Up to 3 active projects",
+  "Scope and deliverable tracking",
+  "Included revision limits",
+  "Change requests and client approvals",
+  "Basic project health checks",
+  "Manual opportunity saving",
+];
+
+const PRO_FEATURES = [
+  "Everything in Starter",
+  "Unlimited active projects",
+  "Advanced project intelligence audits",
+  "Buyer Finder and opportunity matching",
+  "Proposal drafting and buyer analysis",
+  "Portfolio analysis and risk detection",
+  "Growth Coach and performance reports",
+  "Higher AI usage limits",
 ];
 
 export function Pricing() {
+  const [annual, setAnnual] = useState(false);
+
   return (
-    <div className="mx-auto grid max-w-3xl gap-5 md:grid-cols-2">
-      {PLANS.map((p) => (
-        <div key={p.name} className={`rounded-2xl border p-7 ${p.featured ? "border-violet/60 bg-card shadow-glow" : "border-border bg-card/70"}`}>
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-xl font-semibold">{p.name}</h3>
-            {p.featured && <span className="rounded-full bg-gradient-brand px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">Most flexible</span>}
-          </div>
-          <p className="mt-4 font-display text-4xl font-semibold">{p.price}<span className="text-base font-normal text-muted-foreground"> / month</span></p>
-          <p className="text-xs text-muted-foreground">{p.note}</p>
-          <ul className="mt-6 space-y-2.5 text-sm">
-            {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-cyan" />{f}</li>)}
-          </ul>
-          <Button asChild className="mt-7 w-full" variant={p.featured ? "hero" : "glass"}>
-            <Link to="/auth" search={{ mode: "signup" }}>{p.cta}</Link>
-          </Button>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <div className="inline-flex items-center rounded-full border border-border bg-card p-1" aria-label="Billing period">
+          <button type="button" onClick={() => setAnnual(false)} aria-pressed={!annual} className={`rounded-full px-4 py-2 text-sm transition-colors ${!annual ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}>Monthly</button>
+          <button type="button" onClick={() => setAnnual(true)} aria-pressed={annual} className={`rounded-full px-4 py-2 text-sm transition-colors ${annual ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}>Yearly <span className="ml-1 text-xs text-cyan">Save $14</span></button>
         </div>
-      ))}
-      <p className="text-center text-xs text-muted-foreground md:col-span-2">
-        Placeholder plans. Membership and checkout are handled on Whop and are not yet connected to this app — every account currently has full access.
+        <p className="text-xs text-muted-foreground">Choose the billing period that suits your workflow.</p>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <section className="rounded-2xl border border-border bg-card/70 p-7">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-display text-xl font-semibold">Starter</h3>
+            <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">Free forever</span>
+          </div>
+          <p className="mt-5 font-display text-4xl font-semibold">Free</p>
+          <p className="mt-1 text-sm text-muted-foreground">The essentials for keeping client work clear.</p>
+          <ul className="mt-6 space-y-3 text-sm">
+            {STARTER_FEATURES.map((feature) => <li key={feature} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-cyan" />{feature}</li>)}
+          </ul>
+          <Button asChild className="mt-8 w-full" variant="glass"><Link to="/auth" search={{ mode: "signup" }}>Start with Starter</Link></Button>
+        </section>
+
+        <section className="rounded-2xl border border-violet/60 bg-card p-7 shadow-glow">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-display text-xl font-semibold">Pro</h3>
+            <span className="rounded-full bg-gradient-brand px-2.5 py-1 text-xs font-semibold text-primary-foreground">For growing freelancers</span>
+          </div>
+          <p className="mt-5 font-display text-4xl font-semibold tabular-nums">{annual ? "$70" : "$7"}<span className="text-base font-normal text-muted-foreground">{annual ? " / year" : " / month"}</span></p>
+          <p className="mt-1 text-sm text-muted-foreground">{annual ? "Billed yearly — equivalent to about $5.83 per month." : "Flexible monthly membership."}</p>
+          <ul className="mt-6 space-y-3 text-sm">
+            {PRO_FEATURES.map((feature) => <li key={feature} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-cyan" />{feature}</li>)}
+          </ul>
+          <Button asChild className="mt-8 w-full" variant="hero"><Link to="/auth" search={{ mode: "signup" }}>Explore Pro</Link></Button>
+        </section>
+      </div>
+
+      <p className="text-center text-xs leading-relaxed text-muted-foreground">
+        Pricing is planned at $7 monthly or $70 yearly for Pro. Whop checkout, verified membership webhooks and paid-access enforcement are not connected yet, so these prices are not currently charged and Pro features are not yet access-controlled.
       </p>
     </div>
   );
