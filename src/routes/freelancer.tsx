@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { ArrowUpRight, BriefcaseBusiness, Check, Clipboard, ShieldCheck, Target, TrendingUp, UserRound } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Check, Clipboard, ShieldCheck, Sparkles, Target, TrendingUp, UserRound } from "lucide-react";
+import { assessOpportunity, getGrowthInsights, getProposalReadiness } from "@/lib/freelancer-intelligence";
 import { AppShell, WorkspaceGate } from "@/components/app/AppShell";
 import { Panel } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
@@ -102,6 +103,15 @@ function FreelancerPage() {
     won: workspace.opportunities.filter((item) => item.stage === "won").length,
     best: workspace.opportunities.reduce((best, item) => Math.max(best, scoreOf(item.scores)), 0),
   }), [workspace.opportunities]);
+  const assessment = useMemo(() => selected ? assessOpportunity(selected, workspace.profile) : null, [selected, workspace.profile]);
+  const growth = useMemo(() => getGrowthInsights(workspace.opportunities.map((item) => item.stage)), [workspace.opportunities]);
+  const proposalReadiness = selected ? getProposalReadiness(selected, workspace.profile) : [];
+
+  function applyHeuristicAssessment() {
+    if (!selected || !assessment) return;
+    updateSelected({ scores: assessment.score });
+    toast.success("Heuristic assessment applied — review each factor before relying on it.");
+  }
 
   function addOpportunity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -187,7 +197,8 @@ function FreelancerPage() {
 
       {selected && <section className="space-y-6">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan">Selected opportunity</p><h2 className="mt-1 text-2xl font-semibold">{selected.title}</h2><p className="mt-1 text-sm text-muted-foreground">{selected.platform}{selected.buyer ? ` · ${selected.buyer}` : ""}{selected.budget ? ` · ${selected.budget}` : ""}</p></div>{selected.url && <a href={selected.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-cyan hover:underline">Open source <ArrowUpRight className="size-4" /></a>}</div>
-        <Panel title="Opportunity qualification"><p className="mb-4 text-sm text-muted-foreground">Score each factor using evidence you can explain. The result is a guide, not a guarantee of a good outcome.</p>
+        <Panel title="Opportunity qualification"><div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><p className="text-sm text-muted-foreground">Score each factor using evidence you can explain. The result is a guide, not a guarantee of a good outcome.</p><Button type="button" variant="outline" size="sm" onClick={applyHeuristicAssessment} disabled={!assessment}><Sparkles />Assess with heuristics</Button></div>
+          {assessment && <div className="mb-5 rounded-xl border border-border bg-background/60 p-4"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-medium">Suggested fit score: {assessment.total}/100</p><span className="text-xs text-muted-foreground">{assessment.matchedSkills.length} profile terms matched</span></div><div className="mt-3 grid gap-3 sm:grid-cols-2">{assessment.factors.map((factor) => <div key={factor.key} className="rounded-lg border border-border/70 p-3"><div className="flex items-center justify-between gap-2"><p className="text-sm font-medium">{factor.label}</p><span className="font-mono text-xs tabular-nums">{factor.score}/{factor.max}</span></div><p className="mt-1 text-xs text-muted-foreground">{factor.explanation}</p><p className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">Confidence: {factor.confidence}</p></div>)}</div><p className="mt-3 text-xs text-muted-foreground">This is a transparent checklist-based estimate, not an AI model or independent buyer verification. Competition uses a neutral placeholder when no data is supplied.</p></div>}
           <div className="grid gap-5 md:grid-cols-2">
             {CRITERIA.map((criterion) => <div key={criterion.key} className="space-y-2"><div className="flex items-center justify-between gap-3"><Label>{criterion.label}</Label><span className="font-mono text-sm tabular-nums">{selected.scores[criterion.key]}/{criterion.max}</span></div><input type="range" min="0" max={criterion.max} step="1" value={selected.scores[criterion.key]} onChange={(e) => updateSelected({ scores: { ...selected.scores, [criterion.key]: Number(e.target.value) } })} className="w-full accent-cyan" /><p className="text-xs text-muted-foreground">{criterion.hint}</p></div>)}
           </div>
@@ -197,17 +208,20 @@ function FreelancerPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Panel title="Buyer intelligence"><p className="mb-4 text-sm text-muted-foreground">Keep verifiable evidence separate from your interpretation.</p>
             <div className="space-y-4"><Field label="Evidence"><Textarea rows={3} value={selected.evidence} onChange={(e) => updateSelected({ evidence: e.target.value })} placeholder="Public work history, verified reviews, clear requirements…" /></Field><Field label="Assumptions"><Textarea rows={3} value={selected.assumptions} onChange={(e) => updateSelected({ assumptions: e.target.value })} placeholder="What you suspect but have not confirmed…" /></Field><Field label="Risks / questions"><Textarea rows={3} value={selected.risks} onChange={(e) => updateSelected({ risks: e.target.value })} placeholder="Unclear scope, unusual payment terms, missing details…" /></Field></div>
+            {assessment && <div className="mt-5 rounded-lg border border-border p-4"><p className="text-sm font-medium">Brief signals to review</p>{assessment.signals.length ? <ul className="mt-3 space-y-2">{assessment.signals.map((signal) => <li key={signal.phrase} className="text-sm"><span className={signal.level === "caution" ? "font-medium text-warning" : "font-medium text-cyan"}>{signal.phrase}</span><p className="mt-0.5 text-xs text-muted-foreground">{signal.explanation}</p></li>)}</ul> : <p className="mt-2 text-xs text-muted-foreground">No predefined warning phrases found. This does not verify the buyer or guarantee that the opportunity is safe.</p>}</div>}
           </Panel>
           <Panel title="Proposal intelligence"><p className="mb-4 text-sm text-muted-foreground">Create a clear first draft from the opportunity details and your profile. Review it before sending.</p>
             <div className="rounded-lg border border-border bg-background/70 p-4"><p className="whitespace-pre-wrap text-sm leading-6">{makeProposal(selected, workspace.profile)}</p></div>
             <Button className="mt-4" variant="outline" onClick={copyProposal}><Clipboard />Copy proposal draft</Button>
+            <div className="mt-5 rounded-lg border border-border p-4"><p className="text-sm font-medium">Proposal readiness</p><ul className="mt-3 space-y-2">{proposalReadiness.map((item) => <li key={item.label} className="flex items-start gap-2 text-xs"><Check className={`mt-0.5 size-4 shrink-0 ${item.ready ? "text-success" : "text-muted-foreground"}`} /><span><span className="font-medium">{item.label}</span>{!item.ready && <span className="block mt-0.5 text-muted-foreground">{item.action}</span>}</span></li>)}</ul></div>
           </Panel>
         </div>
       </section>}
 
       <section className="grid gap-6 lg:grid-cols-2">
         <Panel title="Freelancer growth loop"><p className="mb-4 text-sm text-muted-foreground">Turn completed opportunities into lessons you can apply next time.</p>
-          <div className="flex items-center gap-3 rounded-lg bg-accent/40 p-4"><TrendingUp className="size-5 text-cyan" /><div><p className="font-medium">{totals.won} opportunities marked won</p><p className="text-xs text-muted-foreground">Track your own results; no performance claims are inferred.</p></div></div>
+          <div className="grid grid-cols-3 gap-2"><div className="rounded-lg bg-accent/40 p-3"><p className="text-xs text-muted-foreground">Won</p><p className="mt-1 text-xl font-semibold tabular-nums">{growth.won}</p></div><div className="rounded-lg bg-accent/40 p-3"><p className="text-xs text-muted-foreground">Closed</p><p className="mt-1 text-xl font-semibold tabular-nums">{growth.closed}</p></div><div className="rounded-lg bg-accent/40 p-3"><p className="text-xs text-muted-foreground">Win rate</p><p className="mt-1 text-xl font-semibold tabular-nums">{growth.winRate === null ? "—" : `${growth.winRate}%`}</p></div></div>
+          <div className="mt-4 rounded-lg border border-border p-4"><p className="text-sm font-medium">Growth Coach suggestions</p><ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-muted-foreground">{growth.suggestions.map((suggestion) => <li key={suggestion}>{suggestion}</li>)}</ul><p className="mt-2 text-[11px] text-muted-foreground">Based only on your manually recorded pipeline stages; not a prediction.</p></div>
           <div className="mt-4"><Field label="Lessons, wins and improvements"><Textarea rows={4} value={workspace.lessons} onChange={(e) => setWorkspace((w) => ({ ...w, lessons: e.target.value }))} placeholder="What worked? Which project types fit your skills? What would you change next time?" /></Field></div>
         </Panel>
         <Panel title="Platform authorization & safety"><p className="mb-4 text-sm text-muted-foreground">Keep discovery and outreach within each platform’s rules.</p>
@@ -220,7 +234,7 @@ function FreelancerPage() {
           <div className="mt-5 rounded-lg border border-border p-4 text-xs text-muted-foreground"><ShieldCheck className="mb-2 size-4 text-cyan" />RevisionShield does not submit applications or proposals automatically. You remain in control of every platform interaction.</div>
         </Panel>
       </section>
-      <p className="text-xs text-muted-foreground">This first-pass module uses manual entry, transparent rule-based scoring and a proposal template. Platform discovery APIs, AI buyer analysis, account-synced opportunity storage and Pro access controls are not connected yet.</p>
+      <p className="text-xs text-muted-foreground">This module uses manual entry and transparent heuristic analysis. It does not independently verify buyers, connect to freelance-platform APIs, call an LLM, sync records to your account, or enforce Pro access.</p>
     </div>
   );
 }
