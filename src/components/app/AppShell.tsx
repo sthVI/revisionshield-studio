@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, LogOut, Plus, RotateCcw, Settings, ShieldCheck } from "lucide-react";
+import { BriefcaseBusiness, LayoutDashboard, LogOut, Plus, RotateCcw, Settings, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo to="/dashboard" />
           <nav className="flex items-center gap-1 sm:gap-2" aria-label="Workspace">
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link to="/dashboard"><LayoutDashboard />Projects</Link></Button>
+            <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex"><Link to="/freelancer"><BriefcaseBusiness />Freelancer tools</Link></Button>
+            <Button asChild variant="ghost" size="icon" className="md:hidden" aria-label="Freelancer Intelligence"><Link to="/freelancer"><BriefcaseBusiness /></Link></Button>
             <Button asChild variant="hero" size="sm"><Link to="/projects/new"><Plus /><span className="hidden xs:inline">New project</span><span className="xs:hidden">New</span></Link></Button>
             <Button asChild variant="ghost" size="icon" aria-label="Settings"><Link to="/settings"><Settings /></Link></Button>
             {demo && <Button variant="ghost" size="icon" aria-label="Reset demo data" onClick={resetDemo}><RotateCcw /></Button>}
